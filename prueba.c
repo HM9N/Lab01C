@@ -45,18 +45,53 @@ void swap(int *x, int *y)
 }
 
 // Método parar maximizar la función
-void maxFunction(int *quantities, int **matriz, int numIngredients)
+void maxFunction(int *quantities, int **matriz, int numIngredients, int *arrayFinal, int *maxSum, int *solutionArray)
 {
+    int Op3 = 2 * quantities[1];
+    int Op4 = Op3 + 3 * quantities[2];
+
+    printf("hola\n");
+    printf("quantites %d\n", quantities[1]);
+    printf("numIngredintes %d\n", numIngredients);
     /* quantities[0] == PP
         quantities[1] == P2
         quantities[2] == P3
         quantities[3] == P4 */
     for (int i = 0; i < quantities[1]; i++)
     {
-        for (int i = 0; i < numIngredients; i++)
+        for (int j = 0; j < numIngredients; j++)
         {
+            if ((matriz[solutionArray[2 * i]][j] | matriz[solutionArray[2 * i + 1]][j]) == 1)
+            {
+                ++*maxSum;
+            }
         }
     }
+
+    for (int i = 0; i < quantities[2]; i++)
+    {
+        for (int j = 0; j < numIngredients; j++)
+        {
+            if ((matriz[solutionArray[Op3 + 3 * i]][j] | matriz[solutionArray[Op3 + 3 * i + 1]][j] | matriz[solutionArray[Op3 + 3 * i + 2]][j]) == 1)
+            {
+                ++*maxSum;
+            }
+        }
+    }
+
+    for (int i = 0; i < quantities[3]; i++)
+    {
+        for (int j = 0; j < numIngredients; j++)
+        {
+            if ((matriz[solutionArray[Op4 + 4 * i]][j] | matriz[solutionArray[Op4 + 4 * i + 1]][j] | matriz[solutionArray[Op4 + 4 * i + 2]][j] | matriz[solutionArray[Op4 + 4 * i + 3]][j]) == 1)
+            {
+                ++*maxSum;
+            }
+        }
+    }
+    
+
+    printf("%d", *maxSum);
 }
 
 // devuelve una permutación del array
@@ -71,17 +106,19 @@ void getPermutation(int *solutionArray, int n)
 }
 
 // Algoritmo para realizar las permutaciones del array
-void arrayPermutation(int *solutionArray, int size, int n, int quantites, int **matriz, int numIngredients)
+void arrayPermutation(int *solutionArray, int size, int n, int *quantites, int **matriz, int numIngredients, int *arrayFinal)
 {
+    int maxsum = 0;
     if (size == 1)
     {
         getPermutation(solutionArray, n);
+        maxFunction(quantites, matriz, numIngredients, arrayFinal, &maxsum, solutionArray);
         return;
     }
 
     for (int i = 0; i < size; i++)
     {
-        arrayPermutation(solutionArray, size - 1, n);
+        arrayPermutation(solutionArray, size - 1, n, quantites, matriz, numIngredients, arrayFinal);
 
         if (size % 2 == 1)
         {
@@ -116,8 +153,6 @@ int main(int argc, char *argv[])
     int **P;
     int *ApToPermutation;
     int *AP;
-    int Op3 = 0;
-    int Op4 = 0;
     char line[1024];
     char lineIngredients[1024];
     int NTPP = 0;
@@ -279,7 +314,22 @@ int main(int argc, char *argv[])
 
     printMatrix(P, numOfDifferentIngredients, quantities[0]);
 
-    arrayPermutation(ApToPermutation, NTPP, NTPP);
+    // arrayPermutation(ApToPermutation, NTPP, NTPP, quantities, P, numingredients, AP);
+    int *vector_dinamico;
+    int N = 9;
+    vector_dinamico = malloc(N * sizeof(int));
+    *(vector_dinamico + 0) = 0;
+    *(vector_dinamico + 1) = 3;
+    *(vector_dinamico + 2) = 2;
+    *(vector_dinamico + 3) = 3;
+    *(vector_dinamico + 4) = 4;
+    *(vector_dinamico + 5) = 5;
+    *(vector_dinamico + 6) = 6;
+    *(vector_dinamico + 7) = 7;
+    *(vector_dinamico + 8) = 8;
+    int maxsum = 0;
+
+    maxFunction(quantities, P, numOfDifferentIngredients, ApToPermutation, &maxsum, vector_dinamico);
 
     free(palabra);
     free(ApToPermutation);
