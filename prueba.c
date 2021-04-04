@@ -24,15 +24,15 @@ void fillMatrix(int **matriz, int rows, char *token, int index, char *ingredient
 }
 
 /* Método para imprimir la matriz */
-void printMatrix(int **matriz, int rows, int cols)
+void printMatrix(int **matriz, int rows, int cols, FILE *fichero)
 {
     for (int i = 0; i < rows; i++)
     {
         for (int j = 0; j < cols; j++)
         {
-            printf("%d ", matriz[j][i]);
+            fprintf(fichero, "%d ", matriz[j][i]);
         }
-        printf("\n");
+        fprintf(fichero, "\n");
     }
 }
 
@@ -121,7 +121,8 @@ void arrayPermutation(int *solutionArray, int size, int n, int *quantities, int 
 }
 /* Fin método de permutación
 
-/* Inicia el método main */
+//////////////////////////////////// Inicia el método main */
+//////////////////////////////////////////////
 int main(int argc, char *argv[])
 {
     if (argc < 2)
@@ -132,8 +133,9 @@ int main(int argc, char *argv[])
 
     FILE *fp = fopen(argv[1], "r");
     FILE *fp2 = fopen(argv[1], "r");
+    FILE *fp3 = fopen("output.txt", "w");
 
-    if (!fp)
+    if (!fp | !fp3)
     {
         printf("Error opening the file %s\n", argv[1]);
     }
@@ -292,49 +294,31 @@ int main(int argc, char *argv[])
 
     fclose(fp2);
 
-    printf("Las filas de la matriz corresponden a los siguientes ingredientes (en ese orden):\n");
+    fprintf(fp3, "La matriz de platos es:\nLas filas de la matriz corresponden a los siguientes ingredientes (en ese orden)\n\n");
 
     for (int i = 0; i < numOfDifferentIngredients; i++)
     {
-        printf("Fila %d: %s\n", i + 1, (palabra + (i * 21)) + 0);
+        fprintf(fp3, "Fila %d: %s\n", i + 1, (palabra + (i * 21)) + 0);
     }
 
-    printMatrix(P, numOfDifferentIngredients, quantities[0]);
+    fprintf(fp3, "\n");
 
-    /*   printf("Esto es antes");
-
-    for (int i = 0; i < NTPP; i++)
-    {
-        printf("%d ", ApToPermutation[i]);
-    }
- */
+    printMatrix(P, numOfDifferentIngredients, quantities[0], fp3);
 
     arrayPermutation(ApToPermutation, NTPP, NTPP, quantities, P, numOfDifferentIngredients, AP, &auxVal);
 
-    printf("\n");
-    printf("El vector solución es: ");
+    fprintf(fp3, "\n");
+    fprintf(fp3, "El vector solución es: \n");
 
     for (int i = 0; i < NTPP; i++)
     {
-        printf("%d ", AP[i]);
+        fprintf(fp3, "%d ", AP[i]);
     }
-    printf("\n");
-    printf("La cantidad de ingredientes diferentes es: %d\n", auxVal);
-    /* int *vector_dinamico;
-    int N = 9;
-    vector_dinamico = malloc(N * sizeof(int));
-    *(vector_dinamico + 0) = 2;
-    *(vector_dinamico + 1) = 1;
-    *(vector_dinamico + 2) = 4;
-    *(vector_dinamico + 3) = 3;
-    *(vector_dinamico + 4) = 6;
-    *(vector_dinamico + 5) = 5;
-    *(vector_dinamico + 6) = 8;
-    *(vector_dinamico + 7) = 7;
-    *(vector_dinamico + 8) = 0;
+    fprintf(fp3, "\n\n");
+    fprintf(fp3, "La cantidad de ingredientes diferentes es: %d\n", auxVal);
+    fclose(fp3);
 
-    maxFunction(quantities, P, numOfDifferentIngredients, AP, vector_dinamico, N, &auxVal); */
-
+    // Se libera memoria en el Heap
     free(palabra);
     free(ApToPermutation);
     free(AP);
