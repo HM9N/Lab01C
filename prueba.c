@@ -45,11 +45,15 @@ void swap(int *x, int *y)
 }
 
 // Método parar maximizar la función
-void maxFunction(int *quantities, int **matriz, int numIngredients, int *arrayFinal, int *solutionArray, int arraySize, int *auxVal)
+void maxFunction(int *quantities, int **matriz, int numIngredients, int *arrayFinal, int *solutionArray, int arraySize, int *auxVal, char *ingredientsP1, char *ingredientsP2, char *ingredientsP3, char *ingredients, int *plateCounters)
 {
+    int boolean = 0;
     int maxSum = 0;
     int Op3 = 2 * quantities[1];
     int Op4 = Op3 + 3 * quantities[2];
+    int p1Counter = 0;
+    int p2Counter = 0;
+    int p3Counter = 0;
 
     for (int i = 0; i < quantities[1]; i++)
     {
@@ -58,6 +62,8 @@ void maxFunction(int *quantities, int **matriz, int numIngredients, int *arrayFi
             if ((matriz[solutionArray[2 * i]][j] | matriz[solutionArray[2 * i + 1]][j]) == 1)
             {
                 ++maxSum;
+                strcpy((ingredientsP1 + (p1Counter * 21)), (ingredients + (j * 21)));
+                p1Counter++;
             }
         }
     }
@@ -69,6 +75,8 @@ void maxFunction(int *quantities, int **matriz, int numIngredients, int *arrayFi
             if ((matriz[solutionArray[Op3 + 3 * i]][j] | matriz[solutionArray[Op3 + 3 * i + 1]][j] | matriz[solutionArray[Op3 + 3 * i + 2]][j]) == 1)
             {
                 ++maxSum;
+                strcpy((ingredientsP2 + (p2Counter * 21)), (ingredients + (j * 21)));
+                p2Counter++;
             }
         }
     }
@@ -80,34 +88,42 @@ void maxFunction(int *quantities, int **matriz, int numIngredients, int *arrayFi
             if ((matriz[solutionArray[Op4 + 4 * i]][j] | matriz[solutionArray[Op4 + 4 * i + 1]][j] | matriz[solutionArray[Op4 + 4 * i + 2]][j] | matriz[solutionArray[Op4 + 4 * i + 3]][j]) == 1)
             {
                 ++maxSum;
+                strcpy((ingredientsP3 + (p3Counter * 21)), (ingredients + (j * 21)));
+                p3Counter++;
             }
         }
     }
 
     if (maxSum >= *auxVal)
     {
+        boolean = 1;
         for (int i = 0; i < arraySize; i++)
         {
             arrayFinal[i] = solutionArray[i];
         }
-
+        if (boolean == 1)
+        {
+            plateCounters[0] = p1Counter;
+            plateCounters[1] = p2Counter;
+            plateCounters[2] = p3Counter;
+        }
         *auxVal = maxSum;
     }
 }
 
 // Algoritmo para realizar las permutaciones del array
-void arrayPermutation(int *solutionArray, int size, int n, int *quantities, int **matriz, int numIngredients, int *arrayFinal, int *auxVal)
+void arrayPermutation(int *solutionArray, int size, int n, int *quantities, int **matriz, int numIngredients, int *arrayFinal, int *auxVal, char *ingredientsP1, char *ingredientsP2, char *ingredientsP3, char *ingredients, int *plateCounters)
 {
 
     if (size == 1)
     {
-        maxFunction(quantities, matriz, numIngredients, arrayFinal, solutionArray, n, auxVal);
+        maxFunction(quantities, matriz, numIngredients, arrayFinal, solutionArray, n, auxVal, ingredientsP1, ingredientsP2, ingredientsP3, ingredients, plateCounters);
         return;
     }
 
     for (int i = 0; i < size; i++)
     {
-        arrayPermutation(solutionArray, size - 1, n, quantities, matriz, numIngredients, arrayFinal, auxVal);
+        arrayPermutation(solutionArray, size - 1, n, quantities, matriz, numIngredients, arrayFinal, auxVal, ingredientsP1, ingredientsP2, ingredientsP3, ingredients, plateCounters);
 
         if (size % 2 == 1)
         {
@@ -145,6 +161,10 @@ int main(int argc, char *argv[])
     int **P;
     int *ApToPermutation;
     int *AP;
+    char *ingredientsP1;
+    char *ingredientsP2;
+    char *ingredientsP3;
+    int *plateIngredientsCounters = malloc(3 * sizeof(int));
     char line[1024];
     char lineIngredients[1024];
     int auxVal = 0;
@@ -184,6 +204,11 @@ int main(int argc, char *argv[])
             ApToPermutation = malloc(NTPP * sizeof(int));
             AP = malloc(NTPP * sizeof(int));
 
+            // Se le asigna espacio a los arreglos para guardar los diferentes ingredientes de cada pedido
+            ingredientsP1 = malloc(2100 * sizeof(char));
+            ingredientsP2 = malloc(2100 * sizeof(char));
+            ingredientsP3 = malloc(2100 * sizeof(char));
+
             // Se inicializa el vector auxiliar
             for (int i = 0; i < NTPP; i++)
             {
@@ -198,6 +223,7 @@ int main(int argc, char *argv[])
             }
 
             if (NTPP != quantities[0])
+
             {
                 printf("Los cálculos no coinciden, revisa la primera línea del archivo de texto\n");
                 return EXIT_FAILURE;
@@ -305,7 +331,13 @@ int main(int argc, char *argv[])
 
     printMatrix(P, numOfDifferentIngredients, quantities[0], fp3);
 
-    arrayPermutation(ApToPermutation, NTPP, NTPP, quantities, P, numOfDifferentIngredients, AP, &auxVal);
+    plateIngredientsCounters[0] = 0;
+    plateIngredientsCounters[1] = 0;
+    plateIngredientsCounters[2] = 0;
+
+    arrayPermutation(ApToPermutation, NTPP, NTPP, quantities, P, numOfDifferentIngredients, AP, &auxVal, ingredientsP1, ingredientsP2, ingredientsP3, palabra, plateIngredientsCounters);
+
+    printf("%d ", plateIngredientsCounters[0]);
 
     fprintf(fp3, "\n");
     fprintf(fp3, "El vector solución es: \n");
@@ -316,10 +348,37 @@ int main(int argc, char *argv[])
     }
     fprintf(fp3, "\n\n");
     fprintf(fp3, "La cantidad de ingredientes diferentes es: %d\n", auxVal);
+
+    fprintf(fp3, "El pedido 0 contiene: ");
+
+    for (int i = 0; i < plateIngredientsCounters[0]; i++)
+    {
+        fprintf(fp3, "%s ", (ingredientsP1 + (i * 21)) + 0);
+    }
+
+    fprintf(fp3, "\nEl pedido 1 contiene: ");
+
+    for (int i = 0; i < plateIngredientsCounters[1]; i++)
+    {
+        fprintf(fp3, "%s ", (ingredientsP2 + (i * 21)) + 0);
+    }
+
+    fprintf(fp3, "\nEl pedido 2 contiene:");
+
+    for (int i = 0; i < plateIngredientsCounters[2]; i++)
+    {
+        fprintf(fp3, "%s ", (ingredientsP3 + (i * 21)) + 0);
+    }
+
     fclose(fp3);
 
     // Se libera memoria en el Heap
     free(palabra);
     free(ApToPermutation);
     free(AP);
+    free(ingredientsP1);
+    free(ingredientsP2);
+    free(ingredientsP3);
+    free(plateIngredientsCounters);
+
 }
